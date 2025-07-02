@@ -2,31 +2,51 @@ import React, {useEffect, useState} from 'react'
 import api from '~/utils/axios';
 import { Editor } from "@monaco-editor/react";
 
+const DEFAULT_CODE = 'def handler(event):\n    return \'Hello World\''
+const DEFAULT_EVENT = JSON.stringify({'key':'value'}, null, 2)
+
 export function Welcome() {
   const [functions, setFunctions] = useState([])
   const [selectedFnId, setSelectedFnId] = useState('')
-  const [code, setCode] = useState('def handler(event):\n    return \'Hello World\'')
-  const [event, setEvent] = useState(JSON.stringify({'key':'value'}, null, 2))
+  const [code, setCode] = useState(DEFAULT_CODE)
+  const [event, setEvent] = useState(DEFAULT_EVENT)
+  const [logs, setLogs] = useState([])
 
   useEffect(() => {
     api.get('/').then(res => setFunctions(res.data));
   }, [])
 
   const handleSave = async () => {
-    const res = await api.post('/function', {
-      code,
-      event: JSON.parse(event),
-      memory: '128'
-    })
+    const data = {code, event: JSON.parse(event), memory: 128}
+    let endpoint = '/function'
+    if(!(selectedFnId === '')) {
+      data['id'] = selectedFnId
+      endpoint += `/${selectedFnId}`
+    }  
+
+    const res = await api.post(endpoint, data)
     setSelectedFnId(res.data.id)
     const updatedFunctions = await api.get('/');
     setFunctions(updatedFunctions.data)
   }
 
+  const changeFn = async (id) => {
+    if(id === '') {
+      setCode(DEFAULT_CODE)
+      setEvent(DEFAULT_EVENT)
+      return
+    }
+    setSelectedFnId(id)
+    const fn = await api.get('/function/' + id);
+
+    setCode(fn.data.code)
+    setEvent(JSON.stringify(fn.data.event, null, 2))
+  }
+
   const handleTest = async () => {
     if(!selectedFnId) return alert('Select a function to test')
     const res = await api.post(`/test/${selectedFnId}`)
-    alert('Function executed. ' + res.data.stdout)
+    setLogs(res.data.logs)
   }
 
   return (
@@ -35,10 +55,10 @@ export function Welcome() {
         <label className="block text-sm font-medium mb-2">Select Function:</label>
         <select
           value={selectedFnId}
-          onChange={e => setSelectedFnId(e.target.value)}
+          onChange={(e) => {changeFn(e.target.value)}}
           className="w-full p-2 border rounded"
         >
-          <option value="">-- Select a function --</option>
+          <option value="">-- Create a new function --</option>
           {functions.map(fn => (
             <option key={fn.id} value={fn.id}>{fn.id}</option>
           ))}
@@ -69,8 +89,15 @@ export function Welcome() {
       </div>
 
       <div className="flex justify-end space-x-4">
-        <button onClick={handleSave}>Save Function</button>
-        <button onClick={handleTest}>Test Function</button>
+        <button className='block p-2 bg-blue-700 border rounded-lg' onClick={handleSave}>{selectedFnId==''? 'New Function' : 'Save Function'}</button>
+        <button className='block p-2 bg-green-700 border rounded-lg' onClick={handleTest}>Test Function</button>
+      </div>
+
+      <div className="mt-4">
+          <label className="block text-sm font-medium mb-2">Logs</label>
+          <pre className="bg-block border p-4 rounded overflow-auto h-48">
+            {logs.map((line, idx) => (<div key={idx}>{line}</div>))}
+          </pre>
       </div>
     </div>
   );
