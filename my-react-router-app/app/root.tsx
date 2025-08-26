@@ -9,19 +9,8 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import Sidebar from "./components/sidebar";
 
-export const links: Route.LinksFunction = () => [
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-  },
-];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,7 +31,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    // <div className="grid grid-cols-6 gap-4">
+    //   <aside>
+    //     <Sidebar />
+    //   </aside>
+    //   <main className="col-span-5 p-4">
+    //     <Outlet />
+    //   </main>
+    // </div>
+    <div className="flex">
+      <aside className="w-64 flex-none"><Sidebar/></aside>
+      <main className="w-64 flex-1 p-4"><Outlet/></main>
+    </div>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

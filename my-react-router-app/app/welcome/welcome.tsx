@@ -51,20 +51,6 @@ export function Welcome() {
 
   return (
     <div className="p-4 space-y-4">
-      <div>
-        <label className="block text-sm font-medium mb-2">Select Function:</label>
-        <select
-          value={selectedFnId}
-          onChange={(e) => {changeFn(e.target.value)}}
-          className="w-full p-2 border rounded"
-        >
-          <option value="">-- Create a new function --</option>
-          {functions.map(fn => (
-            <option key={fn.id} value={fn.id}>{fn.id}</option>
-          ))}
-        </select>
-      </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-2">Function Code</label>
